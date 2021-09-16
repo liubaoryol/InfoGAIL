@@ -89,12 +89,12 @@ class TRPOAgent(object):
                 tf.placeholder(dtype, shape=[None, action_dim])
 
         # Create neural network.
-        print "Now we build trpo generator"
+        print("Now we build trpo generator")
         self.generator = self.create_generator(feats, auxs, encodes)
-        print "Now we build discriminator"
+        print("Now we build discriminator")
         self.discriminator, self.discriminate = \
             self.create_discriminator(img_dim, aux_dim, action_dim)
-        print "Now we build posterior"
+        print("Now we build posterior")
         self.posterior = \
             self.create_posterior(img_dim, aux_dim, action_dim, encode_dim)
         self.posterior_target = \
@@ -133,7 +133,7 @@ class TRPOAgent(object):
                                                 action_dist_logstd) / Nf
         grads = tf.gradients(kl_firstfixed, var_list)
         self.flat_tangent = tf.placeholder(dtype, shape=[None])
-        shapes = map(var_shape, var_list)
+        shapes = list(map(var_shape, var_list))
         start = 0
         tangents = []
         for shape in shapes:
@@ -272,7 +272,7 @@ class TRPOAgent(object):
         numeptotal = 0
 
         # Set up for training discrimiator
-        print "Loading data ..."
+        print("Loading data ...")
         imgs_d, auxs_d, actions_d = demo["imgs"], demo["auxs"], demo["actions"]
         numdetotal = imgs_d.shape[0]
         idx_d = np.arange(numdetotal)
@@ -281,16 +281,16 @@ class TRPOAgent(object):
         imgs_d = imgs_d[idx_d]
         auxs_d = auxs_d[idx_d]
         actions_d = actions_d[idx_d]
-        print "Resizing img for demo ..."
+        print("Resizing img for demo ...")
         imgs_reshaped_d = []
-        for i in xrange(numdetotal):
+        for i in range(numdetotal):
             imgs_reshaped_d.append(np.expand_dims(cv2.resize(imgs_d[i],
                 (self.img_dim[0], self.img_dim[1])), axis=0))
         imgs_d = np.concatenate(imgs_reshaped_d, axis=0).astype(np.float32)
         imgs_d = (imgs_d - 128.) / 128.
-        print "Shape of resized demo images:", imgs_d.shape
+        print("Shape of resized demo images:", imgs_d.shape)
 
-        for i in xrange(1, config.n_iter):
+        for i in range(1, config.n_iter):
 
             # Generating paths.
             if i == 1:
@@ -313,11 +313,11 @@ class TRPOAgent(object):
 
             for path in rollouts:
                 self.buffer.add(path)
-            print "Buffer count:", self.buffer.count()
+            print("Buffer count:", self.buffer.count())
 
             paths = self.buffer.get_sample(config.sample_size)
 
-            print "Calculating actions ..."
+            print("Calculating actions ...")
             for path in paths:
                 path["mus"] = self.sess.run(
                     self.action_dist_mu,
@@ -334,7 +334,7 @@ class TRPOAgent(object):
             actions_n = np.concatenate([path["actions"] for path in paths])
             imgs_n = np.concatenate([path["imgs"] for path in paths])
 
-            print "Epoch:", i, "Total sampled data points:", feats_n.shape[0]
+            print("Epoch:", i, "Total sampled data points:", feats_n.shape[0])
 
             # Train discriminator
             numnototal = feats_n.shape[0]
@@ -345,7 +345,7 @@ class TRPOAgent(object):
                 d_iter = 120 - i * 20
             else:
                 d_iter = 20
-            for k in xrange(d_iter):
+            for k in range(d_iter):
                 loss = self.discriminator.train_on_batch(
                     [imgs_n[start_n:start_n + batch_size],
                      auxs_n[start_n:start_n + batch_size],
@@ -370,7 +370,7 @@ class TRPOAgent(object):
                 if start_n + batch_size >= numnototal:
                     start_n = (start_n + batch_size) % numnototal
 
-                print "Discriminator step:", k, "loss:", loss
+                print("Discriminator step:", k, "loss:", loss)
 
             idx = np.arange(numnototal)
             np.random.shuffle(idx)
@@ -388,7 +388,7 @@ class TRPOAgent(object):
             encodes_val = encodes_n[idx][numno_train:]
 
             start_n = 0
-            for j in xrange(config.p_iter):
+            for j in range(config.p_iter):
                 loss = self.posterior.train_on_batch(
                     [imgs_train[start_n:start_n + batch_size],
                      auxs_train[start_n:start_n + batch_size],
@@ -401,7 +401,7 @@ class TRPOAgent(object):
 
                 posterior_weights = self.posterior.get_weights()
                 posterior_target_weights = self.posterior_target.get_weights()
-                for k in xrange(len(posterior_weights)):
+                for k in range(len(posterior_weights)):
                     posterior_target_weights[k] = 0.5 * posterior_weights[k] +\
                             0.5 * posterior_target_weights[k]
                 self.posterior_target.set_weights(posterior_target_weights)
@@ -410,7 +410,7 @@ class TRPOAgent(object):
                     [imgs_val, auxs_val, actions_val])
                 val_loss = -np.average(
                     np.sum(np.log(output_p) * encodes_val, axis=1))
-                print "Posterior step:", j, "loss:", loss, val_loss
+                print("Posterior step:", j, "loss:", loss, val_loss)
 
             # Computing returns and estimating advantage function.
             path_idx = 0
@@ -495,9 +495,9 @@ class TRPOAgent(object):
             stats["Time elapsed"] = "%.2f mins" % ((time.time() - start_time) / 60.0)
             stats["KL between old and new distribution"] = kloldnew
             stats["Surrogate loss"] = surrafter
-            print("\n********** Iteration {} **********".format(i))
-            for k, v in stats.iteritems():
-                print(k + ": " + " " * (40 - len(k)) + str(v))
+            print(("\n********** Iteration {} **********".format(i)))
+            for k, v in stats.items():
+                print((k + ": " + " " * (40 - len(k)) + str(v)))
             if entropy != entropy:
                 exit(-1)
 
@@ -543,7 +543,7 @@ class Generator(object):
         self.action_gradient = tf.placeholder(tf.float32, [None, action_dim])
         self.params_grad = tf.gradients(self.model.output, self.weights,
                                         self.action_gradient)
-        grads = zip(self.params_grad, self.weights)
+        grads = list(zip(self.params_grad, self.weights))
         self.optimize = tf.train.AdamOptimizer(self.lr).apply_gradients(grads)
 
         self.sess.run(tf.global_variables_initializer())

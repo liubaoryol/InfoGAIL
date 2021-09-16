@@ -9,7 +9,7 @@ import cv2
 
 def collect_demo(path, num_patch, aux_dim, action_dim):
 
-    for i in xrange(num_patch):
+    for i in range(num_patch):
         if i < 20 or (i < 80 and i >= 60):
             continue
 
@@ -18,8 +18,8 @@ def collect_demo(path, num_patch, aux_dim, action_dim):
         raw = open(file_name, 'r').readlines()
         pa = np.zeros(6, dtype=np.float32)
 
-        print "Loading patch %d ..." % i
-        for j in xrange(0, len(raw)):
+        print("Loading patch %d ..." % i)
+        for j in range(0, len(raw)):
             data = np.array(raw[j].strip().split(" ")).astype(np.float32)
             aux = np.expand_dims(
                 np.array([data[1], data[4], data[5], data[6],
@@ -56,9 +56,9 @@ def collect_demo(path, num_patch, aux_dim, action_dim):
             actions = np.concatenate((actions, actions_tmp), axis=0)
             imgs = np.concatenate((imgs, imgs_tmp), axis=0)
 
-        print "Current total:", imgs.shape, auxs.shape, actions.shape
+        print("Current total:", imgs.shape, auxs.shape, actions.shape)
 
-    print "Images:", imgs.shape, "Auxs:", auxs.shape, "Actions:", actions.shape
+    print("Images:", imgs.shape, "Auxs:", auxs.shape, "Actions:", actions.shape)
 
     return imgs, auxs, actions
 
@@ -79,7 +79,7 @@ def main():
 
     np.savez_compressed("/home/yunzhu/Desktop/human_low/demo.npz",
                         imgs=imgs, auxs=auxs, actions=actions)
-    print "Finished."
+    print("Finished.")
 
 
 if __name__ == "__main__":

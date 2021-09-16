@@ -78,11 +78,11 @@ def main():
 
     encode = np.zeros((1, encode_dim), dtype=np.float32)
     encode[0, code] = 1
-    print "Encode:", encode[0]
+    print("Encode:", encode[0])
 
     pre_actions = np.load(pre_actions_path)["actions"]
 
-    for i in xrange(MAX_STEP_LIMIT):
+    for i in range(MAX_STEP_LIMIT):
         if i < MIN_STEP_LIMIT:
             action = np.zeros(3, dtype=np.float32)
         elif i < MIN_STEP_LIMIT + PRE_STEP:
@@ -94,12 +94,12 @@ def main():
         feat, aux = get_state(ob, aux_dim, feat_extractor)
 
         if i == MIN_STEP_LIMIT + PRE_STEP:
-            print "Start deciding ..."
+            print("Start deciding ...")
 
-        print "Step:", i, "DistFromStart:", ob.distFromStart, \
+        print("Step:", i, "DistFromStart:", ob.distFromStart, \
                 "TrackPos:", ob.trackPos, "Damage:", ob.damage.item(), \
                 "Action: %.6f %.6f %.6f" % (action[0], action[1], action[2]), \
-                "Speed:", ob.speedX * 200
+                "Speed:", ob.speedX * 200)
 
         if done:
             break

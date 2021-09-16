@@ -46,7 +46,7 @@ def gauss_log_prob(mu, logstd, x):
     return tf.reduce_sum(gp, [1])
 
 def gauss_selfKL_firstfixed(mu, logstd):
-    mu1, logstd1 = map(tf.stop_gradient, [mu, logstd])
+    mu1, logstd1 = list(map(tf.stop_gradient, [mu, logstd]))
     mu2, logstd2 = mu, logstd
     return gauss_KL(mu1, logstd1, mu2, logstd2)
 
@@ -107,8 +107,8 @@ def rollout_contin(env, agent, feat_extractor, feat_dim, aux_dim, encode_dim,
     paths = []
     timesteps_sofar = 0
     encode_axis = 0
-    for p in xrange(paths_per_collect):
-        print "Rollout index:", p
+    for p in range(paths_per_collect):
+        print("Rollout index:", p)
         feats, auxs, encodes, imgs, raws, actions, logstds = \
                 [], [], [], [], [], [], []
         feat, aux, img = get_state(env.reset(relaunch=True), feat_dim, aux_dim,
@@ -116,10 +116,10 @@ def rollout_contin(env, agent, feat_extractor, feat_dim, aux_dim, encode_dim,
         encode = np.zeros((1, encode_dim), dtype=np.float32)
         encode[0, encode_axis] = 1
         encode_axis = (encode_axis + 1) % encode_dim
-        print "Encode:", encode
+        print("Encode:", encode)
         reward_d = 0
         reward_p = 0
-        for i in xrange(max_step_limit):
+        for i in range(max_step_limit):
             if i < pre_step:
                 action = pre_actions[i]
                 res = env.step(action)
@@ -152,9 +152,9 @@ def rollout_contin(env, agent, feat_extractor, feat_dim, aux_dim, encode_dim,
                                  raws = np.array(raws))
                     paths.append(path)
                     step = i + 1 - pre_step
-                    print "Step:", step, "Reward_d:", reward_d, \
+                    print("Step:", step, "Reward_d:", reward_d, \
                         "Reward_p:", reward_p, "Total:", \
-                        reward_d + reward_p + step * 1.2
+                        reward_d + reward_p + step * 1.2)
                     break
 
                 res = env.step(action[0])
@@ -230,7 +230,7 @@ class TimeDependentBaseline(object):
 class NNBaseline(object):
     def __init__(self, sess, feat_dim, aux_dim, encode_dim, lr_baseline,
                  b_iter, batch_size):
-        print "Now we build baseline"
+        print("Now we build baseline")
         self.model = self.create_net(feat_dim, aux_dim, encode_dim, lr_baseline)
         self.sess = sess
         self.b_iter = b_iter
@@ -298,7 +298,7 @@ class NNBaseline(object):
 
         start = 0
         batch_size = self.batch_size
-        for i in xrange(b_iter):
+        for i in range(b_iter):
             loss = self.model.train_on_batch(
                 [feats_train[start:start + batch_size],
                  auxs_train[start:start + batch_size],
@@ -310,7 +310,7 @@ class NNBaseline(object):
                 start = (start + batch_size) % num_train
             val_loss = np.average(np.square(self.model.predict(
                 [feats_val, auxs_val, encodes_val]).flatten() - returns_val))
-            print "Baseline step:", i, "loss:", loss, "val:", val_loss
+            print("Baseline step:", i, "loss:", loss, "val:", val_loss)
 
     def predict(self, path):
         if self.first_time:
@@ -335,7 +335,7 @@ class SetFromFlat(object):
     def __init__(self, session, var_list):
         self.session = session
         assigns = []
-        shapes = map(var_shape, var_list)
+        shapes = list(map(var_shape, var_list))
         total_size = sum(np.prod(shape) for shape in shapes)
         self.theta = theta = tf.placeholder(dtype, [total_size])
         start = 0
@@ -371,7 +371,7 @@ def conjugate_gradient(f_Ax, b, cg_iters=10, residual_tol=1e-10):
     r = b.copy()
     x = np.zeros_like(b)
     rdotr = r.dot(r)
-    for i in xrange(cg_iters):
+    for i in range(cg_iters):
         z = f_Ax(p)
         v = rdotr / p.dot(z)
         x += v * p

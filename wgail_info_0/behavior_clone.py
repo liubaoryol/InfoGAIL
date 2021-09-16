@@ -42,17 +42,17 @@ def main():
     from keras import backend as K
     K.set_session(sess)
 
-    print "Now we build generator"
+    print("Now we build generator")
     generator = Generator(sess, feat_dim, aux_dim, encode_dim, action_dim)
-    print generator.model.summary()
-    print "Now we build feature extractor"
+    print(generator.model.summary())
+    print("Now we build feature extractor")
     base_model = ResNet50(weights='imagenet', include_top=False)
     feat_extractor = Model(
         input=base_model.input,
         output=base_model.get_layer('activation_40').output
     )
 
-    print "Loading data ..."
+    print("Loading data ...")
     raw = np.load(demo_dir + "demo.npz")
     imgs, auxs, actions = raw["imgs"], raw["auxs"], raw["actions"]
     num_data = imgs.shape[0]
@@ -66,18 +66,18 @@ def main():
     auxs_val = auxs[idx][int(num_data * train_val_ratio):]
     actions_val = actions[idx][int(num_data * train_val_ratio):]
 
-    print "Getting feature for training set ..."
+    print("Getting feature for training set ...")
     feats_train = get_feat(imgs_train, feat_extractor)
-    print "Getting feature for validation set ..."
+    print("Getting feature for validation set ...")
     feats_val = get_feat(imgs_val, feat_extractor)
 
     cur_min_loss_val = 1.
 
-    for i in xrange(episode):
+    for i in range(episode):
         total_step = imgs_train.shape[0] // batch_size
 
         train_loss = np.array([0., 0., 0.])
-        for j in xrange(total_step):
+        for j in range(total_step):
             feats_cur = feats_train[j * batch_size : (j + 1) * batch_size]
             auxs_cur = auxs_train[j * batch_size : (j + 1) * batch_size]
             encodes_cur = np.zeros([batch_size, encode_dim], dtype=np.float32)
@@ -91,8 +91,8 @@ def main():
             generator.train(feats_cur, auxs_cur, encodes_cur,
                             act_pred - act_gt, lr)
             batch_loss = calc_loss(act_gt, act_pred)
-            print "Episode:", i, "Batch:", j, "/", total_step, \
-                    np.round(batch_loss, 6), np.sum(batch_loss)
+            print("Episode:", i, "Batch:", j, "/", total_step, \
+                    np.round(batch_loss, 6), np.sum(batch_loss))
 
             train_loss += batch_loss / total_step
 
@@ -105,10 +105,10 @@ def main():
 
         act_pred = generator.model.predict([feats_val, auxs_val, encodes_val])
         val_loss = calc_loss(actions_val, act_pred)
-        print "Episode:", i, \
+        print("Episode:", i, \
             "Train Loss: ", np.round(train_loss, 6), np.sum(train_loss), \
             "Test Loss:", np.round(val_loss, 6), np.sum(val_loss), cur_min_loss_val, \
-            "LR:", lr
+            "LR:", lr)
 
         if cur_min_loss_val > np.sum(val_loss):
             cur_min_loss_val = np.sum(val_loss)

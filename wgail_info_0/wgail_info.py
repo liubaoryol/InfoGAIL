@@ -5,7 +5,7 @@ import time
 from keras.models import model_from_json, Model
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import json
 
@@ -14,9 +14,9 @@ from models import TRPOAgent
 
 def playGame(finetune=0):
 
-    demo_dir = "/home/yunzhu/Desktop/human_0/"
-    param_dir = "/home/yunzhu/Desktop/wgail_info_params_0/"
-    pre_actions_path = "/home/yunzhu/Desktop/human_0/pre_actions.npz"
+    demo_dir = "C:/Users/HRI/Documents/GitHub/InfoGAIL/Downloads/human_0/"
+    param_dir = "C:/Users/HRI/Documents/GitHub/InfoGAIL/Downloads/wgail_info_params_0/wgail_info_params_0/"
+    pre_actions_path = "C:/Users/HRI/Documents/GitHub/InfoGAIL/Downloads/human_0/pre_actions.npz"
     feat_dim = [7, 13, 1024]
     img_dim = [50, 50, 3]
     aux_dim = 10
@@ -25,9 +25,9 @@ def playGame(finetune=0):
 
     np.random.seed(1024)
 
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
     from keras import backend as K
     K.set_session(sess)
 
